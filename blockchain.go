@@ -62,7 +62,6 @@ func (blockchain *BlockChain) FindUnspentTransactions(address string) []Transact
 
 		//循环区块中的每个交易
 		for _, tx := range block.Transactions {
-			// txID := hex.EncodedLen(tx.ID) //获取交易编号
 			txID := hex.EncodeToString(tx.ID) //获取交易编号
         Outputs:
 		    for outindex, out := range tx.Vout { //循环遍历输出
@@ -79,8 +78,6 @@ func (blockchain *BlockChain) FindUnspentTransactions(address string) []Transact
 				}
 			}
 
-			///////////////
-			//这一段总感觉有问题，应该要在获取未交易输出前先确定 spentTXOs
 			if ! tx.IsCoinBase() {
 				for _, in := range tx.Vin {
 					if in.CanUnlockOutputWith(address) { //判断是否可以锁定
@@ -89,7 +86,6 @@ func (blockchain *BlockChain) FindUnspentTransactions(address string) []Transact
 					}
 				}
 			}
-			///////////////
 		}
 
 		if len(block.PrevBlockHash) == 0 { //最后一个区块，跳出
