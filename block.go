@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	_ "bytes"
+	"crypto/sha256"
 	_ "crypto/sha256"
 	"encoding/gob"
 	"log"
@@ -12,28 +13,28 @@ import (
 
 type Block struct {
 	Timestamp     int64  //时间线，1970/01/01 00.00.00
-	Data          []byte //交易数据
+	// Data          []byte //交易数据
+	Transactions []*Transaction //交易的集合
 	PrevBlockHash []byte //上一块数据的哈希
 	Hash          []byte //当前块数据的哈希
 	Nonce int //工作量证明
 }
 
-// //设定结构体对象哈希
-// func (block *Block) SetHash() {
-// 	//处理当前的时间，转化为10进制字符串，再转化为字节集
-// 	timestamp := []byte(strconv.FormatInt(block.Timestamp, 10))
-// 	//叠加要哈希的数据
-// 	headers := bytes.Join([][]byte{block.PrevBlockHash, block.Data, timestamp}, []byte{})
-// 	//计算出哈希地址
-// 	hash := sha256.Sum256(headers)
-// 	//设置哈希
-// 	block.Hash = hash[:]
-// }
+//对于交易实现哈希计算，从代码来看，是将各交易的 ID 编号进行哈希
+func (block *Block) HashTransactions() []byte {
+	var txHashes [][]byte
+	var txHash [32]byte
+	for _, tx := range block.Transactions {
+		txHashes = append(txHashes, tx.ID)
+	}
+	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
+	return txHash[:]
+}
 
 //创建一个区块
-func NewBlock(data string, previousHash []byte) *Block {
+func NewBlock(transaactions []*Transaction, previousHash []byte) *Block {
 	//block是一个指针，取得一个对象初始化之后的地址
-	block := &Block{time.Now().Unix(), []byte(data), previousHash, []byte{}, 0}
+	block := &Block{time.Now().Unix(), transaactions, previousHash, []byte{}, 0}
 	// block.SetHash() //设置区块的哈希
 	//对这个区块进行挖矿
 	pow := NewProofOfWork(block)
@@ -44,8 +45,8 @@ func NewBlock(data string, previousHash []byte) *Block {
 }
 
 //创建创世区块
-func NewGenesisBlock() *Block {
-	return NewBlock("创世块z0000", []byte{})
+func NewGenesisBlock(coinbase *Transaction) *Block {
+	return NewBlock([]*Transaction{coinbase}, []byte{})
 }
 
 //对象转化为二进制字节集，可以写入文件
