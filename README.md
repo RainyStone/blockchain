@@ -5,5 +5,5 @@
 实现交易类Transaction
 
 blockchain.exe，可执行程序，命令执行如下图：
-![blockchain.exe命令行执行示意图_1-0](./images/blockchain.exe命令行执行示意图_1-0.png)
-![blockchain.exe命令行执行示意图_1-1](./images/blockchain.exe命令行执行示意图_1-1.png)
+![blockchain.exe命令行执行示意图_2-0](./images/blockchain.exe命令行执行示意图_2-0.png)
+![blockchain.exe命令行执行示意图_2-1](./images/blockchain.exe命令行执行示意图_2-1.png)
