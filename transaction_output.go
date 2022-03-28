@@ -1,6 +1,10 @@
 package main
 
-import "bytes"
+import (
+	"bytes"
+	"encoding/gob"
+	"log"
+)
 
 //输出
 type TXOutput struct {
@@ -25,4 +29,32 @@ func NewTxOutput(value int, address string) *TXOutput {
 	txo := &TXOutput{value, nil}
 	txo.Lock([]byte(address))
 	return txo
+}
+
+type TXOutputs struct {
+	Outputs []TXOutput
+}
+
+//对象到二进制
+func (outs *TXOutputs) Serialize() []byte {
+	var buff bytes.Buffer //开辟内存
+	enc := gob.NewEncoder(&buff) //创建编码器
+	err := enc.Encode(outs)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return buff.Bytes() //返回二进制
+}
+
+//二进制到对象
+func DeserializeOutputs(data []byte) TXOutputs {
+	var outputs TXOutputs
+	dec := gob.NewDecoder(bytes.NewReader(data)) //解码对象
+	err := dec.Decode(&outputs) //解码操作
+	if err!=nil {
+		log.Panic(err)
+	}
+
+	return outputs
 }

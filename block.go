@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	_ "bytes"
-	"crypto/sha256"
+	_ "crypto/sha256"
 	_ "crypto/sha256"
 	"encoding/gob"
 	"log"
@@ -20,15 +20,14 @@ type Block struct {
 	Nonce int //工作量证明
 }
 
-//对于交易实现哈希计算，从代码来看，是将各交易的 ID 编号进行哈希
+//对于交易实现哈希计算
 func (block *Block) HashTransactions() []byte {
-	var txHashes [][]byte
-	var txHash [32]byte
-	for _, tx := range block.Transactions {
-		txHashes = append(txHashes, tx.ID)
+	var transactions [][]byte
+	for _,tx := range block.Transactions {
+		transactions = append(transactions, tx.Serialize())
 	}
-	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
-	return txHash[:]
+	mTree := NewMerkleTree(transactions)
+	return mTree.RootNode.data
 }
 
 //创建一个区块

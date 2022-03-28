@@ -7,7 +7,7 @@ import (
 
 //展示区块链数据
 func (cli *CLI) showBlockChain() {
-	bc := NewBlockChain("") //找出所有数据库????但是 NewBlockChain 函数中貌似没有使用到 address 参数
+	bc := NewBlockChain()
 	defer bc.db.Close()
 
 	bci := bc.Iterator() //迭代器

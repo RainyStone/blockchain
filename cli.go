@@ -21,6 +21,7 @@ func (cli *CLI) printUsage() {
 	fmt.Println("createblockchain -address 钱包地址 根据地址创建区块链")
 	fmt.Println("send -from From -to To -amount Amount 转账")
 	fmt.Println("showchain 显示区块链")
+	fmt.Println("reindexutxo 重建UTXO索引")
 }
 
 func (cli *CLI) validateArgs() {
@@ -40,6 +41,7 @@ func (cli *CLI) Run() {
 	createblockchaincmd := flag.NewFlagSet("createblockchain", flag.ExitOnError)
 	sendcmd := flag.NewFlagSet("send", flag.ExitOnError)
 	showchaincmd := flag.NewFlagSet("showchain", flag.ExitOnError)
+	reindexutxocmd := flag.NewFlagSet("reindexutxo", flag.ExitOnError)
 
 	getbalanceaddress := getbalancecmd.String("address", "", "查询地址")
 	createblockchainaddress := createblockchaincmd.String("address", "", "查询地址")
@@ -75,6 +77,11 @@ func (cli *CLI) Run() {
 		}
 	case "listaddresses":
 		err := listaddressescmd.Parse(os.Args[2:]) //解析参数
+		if err != nil {
+			log.Panic(err) //处理错误
+		}
+	case "reindexutxo":
+		err := reindexutxocmd.Parse(os.Args[2:]) //解析参数
 		if err != nil {
 			log.Panic(err) //处理错误
 		}
@@ -117,6 +124,10 @@ func (cli *CLI) Run() {
 
 	if listaddressescmd.Parsed() {
 		cli.listAddresses() //显示所有钱包地址
+	}
+
+	if reindexutxocmd.Parsed() {
+		cli.reindexUTXO() //重建索引
 	}
 
 }

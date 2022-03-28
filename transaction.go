@@ -203,3 +203,44 @@ func NewCoinBaseTX(to, data string) *Transaction {
 	tx.ID = tx.Hash() //哈希计算设置交易编号
 	return &tx
 }
+
+//创建基于钱包地址的转账交易
+func NewUTXOTransaction(from, to string, amount int, UTXOSet *UTXOSet) *Transaction {
+	var inputs []TXInput //输入
+	var outputs []TXOutput //输出
+
+	wallets, err := NewWallets() //打开钱包集合
+	if err != nil {
+		log.Panic(err)
+	}
+	wallet := wallets.GetWallet(from) //通过钱包地址获取钱包
+	pubkeyhash := HashPubkey(wallet.PublicKey) //获取公钥哈希
+    acc, validOutputs := UTXOSet.FindSpendableOutputs(pubkeyhash, amount)
+	if acc < amount {
+		log.Panic("交易金额不足!!!!")
+	}
+
+	for txid, outs := range validOutputs { //循环遍历无效输出
+		txID, err := hex.DecodeString(txid) //解码
+		if err != nil {
+			log.Panic(err) //处理错误
+		}
+		for _, out := range outs {
+			input := TXInput{txID, out, nil, wallet.PublicKey} //输入
+			inputs = append(inputs, input)
+		}
+	}
+
+	//输出
+	outputs = append(outputs, *NewTxOutput(amount, to))
+
+	if acc > amount {
+		//记录以后的金额，即多余的金额转回给 from，找零
+		outputs = append(outputs, *NewTxOutput(acc-amount, from))
+	}
+
+	tx := Transaction{nil, inputs, outputs} //交易
+	tx.ID = tx.Hash()
+	UTXOSet.blockchain.SignTransaction(&tx, wallet.PrivateKey)
+	return &tx
+}

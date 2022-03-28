@@ -23,7 +23,7 @@ type BlockChain struct {
 }
 
 //挖矿带来的交易
-func (blockchain *BlockChain) MineBlock(transactions []*Transaction) {
+func (blockchain *BlockChain) MineBlock(transactions []*Transaction) *Block {
 	var lastHash []byte //最后的哈希
 
 	for _,tx := range transactions {
@@ -60,6 +60,8 @@ func (blockchain *BlockChain) MineBlock(transactions []*Transaction) {
 		blockchain.tip = newBlock.Hash
 		return nil
 	})
+
+	return newBlock
 }
 
 //获取 address 对应的未使用输出的交易列表
@@ -108,19 +110,44 @@ func (blockchain *BlockChain) FindUnspentTransactions(pubkeyhash []byte) []Trans
 }
 
 //获取 address 对应的所有没有使用的交易输出
-func (blockchain *BlockChain) FindUTXO(pubkeyhash []byte) []TXOutput {
-	var UTXOs []TXOutput
-	//查找未使用输出对应的交易
-	unspentTransactions := blockchain.FindUnspentTransactions(pubkeyhash)
-	//循环所有交易
-	for _, tx := range unspentTransactions {
-		for _, out := range tx.Vout {
-			if out.IsLockedWithKey(pubkeyhash) { //判断是否是当前 address 对应的输出
-				UTXOs = append(UTXOs, out) //加入数据
+func (blockchain *BlockChain) FindUTXO() map[string]TXOutputs {
+	UTXO := make(map[string]TXOutputs)
+	spentTXOs := make(map[string][]int)
+	bci := blockchain.Iterator()
+	for {
+		block := bci.next()
+
+		for _,tx := range block.Transactions {
+			txID := hex.EncodeToString(tx.ID)
+
+	Outputs:
+		    for outIdx, out := range tx.Vout {
+				if spentTXOs[txID] != nil {
+					for _,spendoutidx := range spentTXOs[txID] {
+						if spendoutidx == outIdx {
+							continue Outputs
+						}
+					}
+				}
+
+				outs := UTXO[txID]
+				outs.Outputs = append(outs.Outputs, out)
+				UTXO[txID] = outs
+			}
+
+			if !tx.IsCoinBase() {
+				for _, in :=range tx.Vin {
+					inTxID := hex.EncodeToString(in.Txid)
+					spentTXOs[inTxID] = append(spentTXOs[inTxID], in.Vout)
+				}
 			}
 		}
+
+		if len(block.PrevBlockHash) == 0 {
+			break
+		}
 	}
-	return UTXOs
+	return UTXO
 }
 
 
@@ -165,7 +192,7 @@ func dbExists() bool {
 
 //新建一条区块链
 //????函数中貌似没有使用到 address 参数
-func NewBlockChain(address string) *BlockChain {
+func NewBlockChain() *BlockChain {
 	if ! dbExists() {
 		fmt.Println("数据库不存在，创建一个新的数据库")
 		os.Exit(1)
@@ -281,45 +308,4 @@ func (blockchain *BlockChain) VerifyTransaction(tx *Transaction) bool {
 	}
 
 	return tx.Verify(prevTxs)
-}
-
-//创建基于钱包地址的转账交易
-func NewUTXOTransaction(from, to string, amount int, bc *BlockChain) *Transaction {
-	var inputs []TXInput //输入
-	var outputs []TXOutput //输出
-
-	wallets, err := NewWallets() //打开钱包集合
-	if err != nil {
-		log.Panic(err)
-	}
-	wallet := wallets.GetWallet(from) //通过钱包地址获取钱包
-	pubkeyhash := HashPubkey(wallet.PublicKey) //获取公钥哈希
-    acc, validOutputs := bc.FindSpendableOutputs(pubkeyhash, amount)
-	if acc < amount {
-		log.Panic("交易金额不足!!!!")
-	}
-
-	for txid, outs := range validOutputs { //循环遍历无效输出
-		txID, err := hex.DecodeString(txid) //解码
-		if err != nil {
-			log.Panic(err) //处理错误
-		}
-		for _, out := range outs {
-			input := TXInput{txID, out, nil, wallet.PublicKey} //输入
-			inputs = append(inputs, input)
-		}
-	}
-
-	//输出
-	outputs = append(outputs, *NewTxOutput(amount, to))
-
-	if acc > amount {
-		//记录以后的金额，即多余的金额转回给 from，找零
-		outputs = append(outputs, *NewTxOutput(acc-amount, from))
-	}
-
-	tx := Transaction{nil, inputs, outputs} //交易
-	tx.ID = tx.Hash()
-	bc.SignTransaction(&tx, wallet.PrivateKey)
-	return &tx
 }

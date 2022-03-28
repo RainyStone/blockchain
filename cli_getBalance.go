@@ -11,13 +11,16 @@ func (cli *CLI) getBalance(address string) {
 		log.Panic("钱包地址 address 错误!!!!")
 	}
 
-	bc := NewBlockChain(address) //根据地址创建
+	bc := NewBlockChain() //根据地址创建
+	UTXOSet := UTXOSet{bc} //创建UTXO
 	defer bc.db.Close() //延迟关闭数据库
 
 	balance := 0
 	pubkeyhash := Base58Decode([]byte(address)) //提取公钥
 	pubkeyhash = pubkeyhash[1:len(pubkeyhash)-4]
-	UTXOs := bc.FindUTXO(pubkeyhash)
+
+	UTXOs := UTXOSet.FindUTXO(pubkeyhash) //根据公钥查询
+
 	for _, out := range UTXOs {
 		balance += out.Value //金额叠加
 	}
