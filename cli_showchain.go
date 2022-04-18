@@ -6,8 +6,8 @@ import (
 )
 
 //展示区块链数据
-func (cli *CLI) showBlockChain() {
-	bc := NewBlockChain()
+func (cli *CLI) showBlockChain(nodeID string) {
+	bc := NewBlockChain(nodeID )
 	defer bc.db.Close()
 
 	bci := bc.Iterator() //迭代器
@@ -18,7 +18,7 @@ func (cli *CLI) showBlockChain() {
 		pow := NewProofOfWork(block) //工作量证明
 		fmt.Printf("pow：%s\n", strconv.FormatBool(pow.Validate()))
 		for i,tx := range block.Transactions {
-			fmt.Printf("\t交易 %d ：%v", i, tx)
+			fmt.Printf("\t交易 %d ：%v\n", i, tx)
 		}
 		fmt.Println()
 		if len(block.PrevBlockHash) == 0 {

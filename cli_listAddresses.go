@@ -6,8 +6,8 @@ import (
 )
 
 //提取出所有钱包地址
-func (cli *CLI) listAddresses() {
-	wallets, err := NewWallets()
+func (cli *CLI) listAddresses(nodeID string) {
+	wallets, err := NewWallets(nodeID)
 	if err != nil {
 		log.Panic(err)
 	}

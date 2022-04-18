@@ -6,12 +6,12 @@ import (
 )
 
 //获取地址 address 对应的可用于交易的金额
-func (cli *CLI) getBalance(address string) {
+func (cli *CLI) getBalance(address string, nodeID string) {
 	if !ValidateAddress(address) {
 		log.Panic("钱包地址 address 错误!!!!")
 	}
 
-	bc := NewBlockChain() //根据地址创建
+	bc := NewBlockChain(nodeID) //根据地址创建
 	UTXOSet := UTXOSet{bc} //创建UTXO
 	defer bc.db.Close() //延迟关闭数据库
 
