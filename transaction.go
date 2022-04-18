@@ -116,7 +116,7 @@ func (tx Transaction) String() string {
 	for i, output := range tx.Vout {
 		lines = append(lines, fmt.Sprintf("----out index：%d", i))
 		lines = append(lines, fmt.Sprintf("----out Value：%d", output.Value))
-		lines = append(lines, fmt.Sprintf("----out PubKeyHash：%x", output.PubKeyHash))
+		lines = append(lines, fmt.Sprintf("----out PubKeyHash：%x\n", output.PubKeyHash))
 	}
 	return strings.Join(lines, "\n")
 }
@@ -205,15 +205,10 @@ func NewCoinBaseTX(to, data string) *Transaction {
 }
 
 //创建基于钱包地址的转账交易
-func NewUTXOTransaction(from, to string, amount int, UTXOSet *UTXOSet) *Transaction {
+func NewUTXOTransaction(wallet *Wallet, to string, amount int, UTXOSet *UTXOSet) *Transaction {
 	var inputs []TXInput //输入
 	var outputs []TXOutput //输出
 
-	wallets, err := NewWallets() //打开钱包集合
-	if err != nil {
-		log.Panic(err)
-	}
-	wallet := wallets.GetWallet(from) //通过钱包地址获取钱包
 	pubkeyhash := HashPubkey(wallet.PublicKey) //获取公钥哈希
     acc, validOutputs := UTXOSet.FindSpendableOutputs(pubkeyhash, amount)
 	if acc < amount {
@@ -230,7 +225,8 @@ func NewUTXOTransaction(from, to string, amount int, UTXOSet *UTXOSet) *Transact
 			inputs = append(inputs, input)
 		}
 	}
-
+	
+	from := fmt.Sprintf("%s", wallet.GetAddress())
 	//输出
 	outputs = append(outputs, *NewTxOutput(amount, to))
 

@@ -18,6 +18,7 @@ type Block struct {
 	PrevBlockHash []byte //上一块数据的哈希
 	Hash          []byte //当前块数据的哈希
 	Nonce int //工作量证明
+	Height int //区块高度????好像是区块顺序编号，每后一个区块的 Height 在前一个区块的 Height 基础上 +1
 }
 
 //对于交易实现哈希计算
@@ -31,9 +32,9 @@ func (block *Block) HashTransactions() []byte {
 }
 
 //创建一个区块
-func NewBlock(transaactions []*Transaction, previousHash []byte) *Block {
+func NewBlock(transaactions []*Transaction, previousHash []byte, height int) *Block {
 	//block是一个指针，取得一个对象初始化之后的地址
-	block := &Block{time.Now().Unix(), transaactions, previousHash, []byte{}, 0}
+	block := &Block{time.Now().Unix(), transaactions, previousHash, []byte{}, 0, height}
 	// block.SetHash() //设置区块的哈希
 	//对这个区块进行挖矿
 	pow := NewProofOfWork(block)
@@ -45,7 +46,7 @@ func NewBlock(transaactions []*Transaction, previousHash []byte) *Block {
 
 //创建创世区块
 func NewGenesisBlock(coinbase *Transaction) *Block {
-	return NewBlock([]*Transaction{coinbase}, []byte{})
+	return NewBlock([]*Transaction{coinbase}, []byte{}, 0)
 }
 
 //对象转化为二进制字节集，可以写入文件
@@ -71,3 +72,5 @@ func DeserializeBlock(data []byte) *Block{
 
 	return &block
 }
+
+

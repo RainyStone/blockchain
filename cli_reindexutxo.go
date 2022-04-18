@@ -2,8 +2,8 @@ package main
 
 import "fmt"
 
-func (cli *CLI) reindexUTXO() {
-	blockchain := NewBlockChain()
+func (cli *CLI) reindexUTXO(nodeID string) {
+	blockchain := NewBlockChain(nodeID)
 	UTXOSet := UTXOSet{blockchain}
 	UTXOSet.Reindex()
 	count := UTXOSet.CountTransactions()
