@@ -6,6 +6,7 @@
 #### 项目代码参考：https://github.com/Jeiwan/blockchain_go
 #### 视频教程：
 go语言七步铸自己的比特币：https://www.bilibili.com/video/BV1U4411K7LK
+
 go语言与区块链视频：https://www.bilibili.com/video/BV1H5411L7tt
 
 (注：两个视频教程内容大致相似，只不过某些地方可能内容不全，其实视频内容中的代码也主要参考的是 Jeiwan/blockchain_go 仓库，视频中的少许代码可能有误，可以参考 Jeiwan/blockchain_go 的源代码进行修改，视频可以作为理解项目的思路参考)
