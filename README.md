@@ -13,8 +13,6 @@ go语言与区块链视频：https://www.bilibili.com/video/BV1H5411L7tt
 读懂比特币白皮书，区块链开山之作，中本聪到底说了什么？| 李查说：https://www.bilibili.com/video/BV1Hh411Z7id
 (up主对白皮书的讲解个人认为比较好，起码我可以听懂还能从中有所收获😂)
 
-建议 star Jeiwan/blockchain_go 仓库，给视频up主点赞投币，以示支持。只是一个建议，不必太在意哈😆
-
 ### 项目简要说明
 
 为保持项目环境干净，在项目目录中执行 “go build ./” 命令前，请删除 blockchain.db、blockchain.exe、wallet.dat 文件，重新 build 生成 blockchain.exe，以避免运行程序时受历史数据影响，导致出现数据不一致的情况
